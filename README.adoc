@@ -1,0 +1,15 @@
+A little benchmark showing that the JVM is able to inline dynamically-generated code just as well as normal code.
+
+To build:
+
+  ./gradlew installDist
+
+To run:
+
+  build/install/asm-inlining-demo/bin/asm-inlining-demo
+
+Note that i have not done the work needed make `./gradlew run` work. The build process is a bit involved, and it would take quite a bit of arcane ritual.
+
+To run with dumping of generated machine code, https://mechanical-sympathy.blogspot.co.uk/2013/06/printing-generated-assembly-code-from.html[install a disassembler plugin], then run:
+
+  JAVA_OPTS="-XX:+UnlockDiagnosticVMOptions -XX:CompileCommand=print,*BenchmarkApp.getValueFrom*" build/install/asm-inlining-demo/bin/asm-inlining-demo
