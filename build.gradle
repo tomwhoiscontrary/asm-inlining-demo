@@ -1,5 +1,84 @@
 apply plugin: 'java'
+apply plugin: 'application'
 
 repositories {
     jcenter()
+}
+
+sourceSets {
+    template {
+        java {
+            compileClasspath += sourceSets.main.output
+        }
+    }
+    generated {
+        java {
+            srcDirs = ["$buildDir/src/generated/java"]
+            compileClasspath += sourceSets.main.compileClasspath
+        }
+    }
+    // TODO express the dependence of the application on the generated code around this level, then move asm to be a dependency of generated only
+}
+
+configurations {
+    asmUtil
+}
+
+dependencies {
+    def asmVersion = '5.2'
+    def jmhVersion = '1.17.4'
+
+    compile group: 'org.openjdk.jmh', name: 'jmh-core', version: jmhVersion
+    compile group: 'org.openjdk.jmh', name: 'jmh-generator-annprocess', version: jmhVersion
+
+    compile group: 'org.ow2.asm', name: 'asm', version: asmVersion
+
+    asmUtil group: 'org.ow2.asm', name: 'asm-util', version: asmVersion
+}
+
+mainClassName = 'li.earth.urchin.twic.asm.BenchmarkApp'
+
+/**
+ * A clean way to work around the fact that Gradle wants to create a JavaExec task's output stream in the configuration phase, rather than the execution phase.
+ */
+class LazyFileOutputStream extends FilterOutputStream {
+    private final File file
+
+    LazyFileOutputStream(File file) {
+        super(null)
+        this.file = file
+    }
+
+    @Override
+    void write(int b) throws IOException {
+        ensureOpen()
+        super.write(b)
+    }
+
+    @Override
+    void write(byte[] b, int off, int len) throws IOException {
+        ensureOpen()
+        super.write(b, off, len)
+    }
+
+    private void ensureOpen() {
+        if (out == null) {
+            file.parentFile.mkdirs()
+            out = file.newOutputStream()
+        }
+    }
+}
+
+File.metaClass.resolve << { String path -> new File(delegate, path) }
+
+task asmify(type: JavaExec, dependsOn: templateClasses) {
+    classpath = configurations.asmUtil
+    main = 'org.objectweb.asm.util.ASMifier'
+    args = [sourceSets.template.output.classesDir.resolve('li/earth/urchin/twic/asm/TestDynamicInterfaceImpl.class')]
+    standardOutput = new LazyFileOutputStream(sourceSets.generated.java.srcDirs[0].resolve('asm/li/earth/urchin/twic/asm/TestDynamicInterfaceImplDump.java'))
+}
+compileGeneratedJava.dependsOn asmify
+
+jar {
+    from sourceSets.generated.output
 }
