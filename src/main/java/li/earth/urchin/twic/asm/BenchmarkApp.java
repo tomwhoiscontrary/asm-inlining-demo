@@ -15,9 +15,7 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Fork(value = 1)
@@ -39,19 +37,16 @@ public class BenchmarkApp {
     @State(Scope.Benchmark)
     public static class Fixtures {
 
-        public final String value = Objects.requireNonNull(System.getProperty("java.version")); // some arbitrary string
+        public final TestBean bean = new TestBean();
 
-        public final TestBean bean = new TestBean(value);
-
-        public final TestStaticInterface staticInterfaceImpl = new TestStaticInterfaceImpl(value);
+        public final TestStaticInterface staticInterfaceImpl = new TestStaticInterfaceImpl();
 
         public final TestDynamicInterface dynamicInterfaceImpl;
 
         {
             try {
                 Class<? extends TestDynamicInterface> implClass = Utils.createDynamicImplementation(TestDynamicInterface.class, "asm.li.earth.urchin.twic.asm.TestDynamicInterfaceImplDump");
-                Constructor<? extends TestDynamicInterface> constructor = implClass.getConstructor(String.class);
-                dynamicInterfaceImpl = constructor.newInstance(value);
+                dynamicInterfaceImpl = implClass.newInstance();
             } catch (InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException | ClassNotFoundException e) {
                 throw new AssertionError(e);
             }

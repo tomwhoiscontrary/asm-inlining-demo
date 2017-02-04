@@ -2,11 +2,7 @@ package li.earth.urchin.twic.asm;
 
 public class TestStaticInterfaceImpl implements TestStaticInterface {
 
-    private final String value;
-
-    public TestStaticInterfaceImpl(String value) {
-        this.value = value;
-    }
+    private final String value = null;
 
     @Override
     public String getValue() {

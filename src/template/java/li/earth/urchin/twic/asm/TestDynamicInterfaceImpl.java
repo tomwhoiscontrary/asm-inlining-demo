@@ -2,11 +2,7 @@ package li.earth.urchin.twic.asm;
 
 public class TestDynamicInterfaceImpl implements TestDynamicInterface {
 
-    private final String value;
-
-    public TestDynamicInterfaceImpl(String value) {
-        this.value = value;
-    }
+    private final String value = null;
 
     @Override
     public String getValue() {
