@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public class TestBean {
 
-    private final String value = Objects.requireNonNull(System.getProperty("java.version"));
+    private final String value = Objects.requireNonNull("what the hell");
 
     public String getValue() {
         return value;
